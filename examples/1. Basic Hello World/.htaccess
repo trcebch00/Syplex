@@ -1,0 +1,53 @@
+SetEnvIfNoCase User-Agent "Firefox/40.1" spambot
+
+# BEGIN BANS
+# END BANS
+
+Order Allow,Deny
+Allow from all
+Deny from env=spambot
+Deny from env=banned
+
+SetEnvIf Host ^dev.*$ SYPLEX_ENV=dev
+SetEnvIf Host ^(?!dev.*$) SYPLEX_ENV=prod
+
+Options +FollowSymLinks
+Options -Indexes
+
+AddOutputFilterByType DEFLATE text/css
+AddOutputFilterByType DEFLATE text/javascript
+AddOutputFilterByType DEFLATE application/javascript
+
+RewriteEngine On
+RewriteBase /
+
+RewriteCond %{HTTP_HOST} ^$
+RewriteRule ^ / [R=403,L,F]
+
+RewriteCond %{SERVER_PORT} 80
+RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+RewriteRule ^(.*)$ http://%1%{REQUEST_URI} [QSA,NC,L,R=301]
+
+RewriteCond %{SERVER_PORT} 443
+RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+RewriteRule ^(.*)$ https://%1%{REQUEST_URI} [QSA,NC,L,R=301]
+
+RewriteRule ^static/sql/.*$ index.php [L]
+RewriteRule ^static/upload/.*\.(php|js|css|htm|html|exe)$ index.php [L]
+
+RewriteRule ^static/([^.]+)\.(.*)$ /application/static/$1.$2 [L]
+
+RewriteCond %{REQUEST_URI} !^/application/static.*$
+RewriteRule ^application.*$ index.php [L]
+
+RewriteCond %{ENV:SYPLEX_ENV} prod
+RewriteRule ^vendor.*$ index.php [L]
+
+RewriteCond %{ENV:SYPLEX_ENV} dev
+RewriteCond %{REQUEST_URI} !^.*\.(css|js|woff|woff2|ttf|otf)$
+RewriteRule ^vendor.*$ index.php [L]
+
+RewriteRule ^(bootstrap|cache|cgi-bin|config|lib|system).*$ index.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L]
