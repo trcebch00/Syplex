@@ -7,7 +7,7 @@ class PageController extends Controller {
     return $this->view->render("home.html.twig");
   }
 
-  public function hello($name) {
+  public function greet($name) {
     return $this->view->render("hello.html.twig", [
       "name" => $name
     ]);
